@@ -9,7 +9,7 @@ const {recordAttendance, calculateAttendance, addOrUpdateSalary, viewSalary, cal
 router.post('/recordAttendance', recordAttendance)
 
 // Route to calculate attendance of an employee
-router.post('/calculateAttendance/:uID', calculateAttendance);
+router.get('/calculateAttendance/:uID', calculateAttendance);
 
 // Route to add or update salary details for an employee
 router.post('/addOrUpdateSalary', addOrUpdateSalary);

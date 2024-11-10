@@ -87,7 +87,7 @@ exports.trackInTime = async (req, res) => {
 exports.trackOutTime = async (req, res) => {
     try {
         const { uID } = req.params; // Get the labour ID from the request
-        const labour = await Labour.findById({ uID });
+        const labour = await Labour.findOne({ uID });
 
         if (!labour) {
             return res.status(404).json({ message: 'Labour not found' });

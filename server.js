@@ -35,7 +35,7 @@ app.get('/', localAuthMiddleWare, (req, res)=>{
 
 // Sales Manager Routes
 const salesManagerRoutes = require('./routes/salesManagerRoutes');
-app.use('/salesManager', localAuthMiddleWare, salesManagerRoutes);
+app.use('/salesManager', salesManagerRoutes);
 
 // Admin routes
 const adminRoutes = require('./routes/adminRoutes');

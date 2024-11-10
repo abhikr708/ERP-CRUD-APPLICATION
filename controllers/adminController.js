@@ -138,8 +138,8 @@ exports.deleteLabour = async (req, res) => {
 // Function to view Sales Manager and Labour locations
 exports.viewLocations = async (req, res) => {
     try {
-        const salesManagers = await User.find({ role: 'SalesManager' }).select('name area');
-        const labours = await Labour.find().select('name area');
+        const salesManagers = await User.find({ role: 'SalesManager' }).select('uID name area role');
+        const labours = await Labour.find().select('uID name area role');
         
         res.status(200).json({
             success: true,
