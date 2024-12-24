@@ -122,9 +122,9 @@ exports.addOrUpdateTask = async (req, res) => {
         if (task) {
             // Update existing task
             task.taskDescription = taskDescription,
-                task.assignedOn = assignedOn,
-                task.status = status,
-                task.completionDate = completionDate
+            task.assignedOn = assignedOn,
+            task.status = status,
+            task.completionDate = completionDate
         }
         else {
             // Create a new task

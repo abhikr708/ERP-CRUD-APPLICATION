@@ -92,7 +92,7 @@ exports.addSalesManager = async (req, res) => {
 // Function to add a new Labour
 exports.addLabour = async (req, res) => {
     try {
-        const { uID, name, assignedSalesManager, area } = req.body;
+        const { uID, name, assignedSalesManager, area, email, password} = req.body;
         const newLabour = new Labour({
             uID,
             name,
@@ -100,7 +100,16 @@ exports.addLabour = async (req, res) => {
             area
         });
 
+        const newUser = new User({
+            uID, 
+            name, 
+            role:'Labour',
+            email,
+            area
+        })
+
         const response = await newLabour.save();
+        await newUser.save();
         console.log("Labour added successfully");
         res.status(201).json({
             success: true,

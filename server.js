@@ -4,10 +4,6 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 const dbConnect = require('./config/db');
 
-// Authentication
-const passport = require('./auth');
-// const LocalStrategy =  require('passport-local').Strategy;
-
 // Load the config from env
 require('dotenv').config();
 const PORT = process.env.PORT || 4000;
@@ -19,17 +15,13 @@ const logRequest = (req, res, next)=>{
 }
 app.use(logRequest);
 
-// Intialize the passport
-app.use(passport.initialize());
-const localAuthMiddleWare = passport.authenticate('local', {session:false});
-
 
 // Establish connection to the database
 dbConnect();
 
 // _______Routes_______
 
-app.get('/', localAuthMiddleWare, (req, res)=>{
+app.get('/', (req, res)=>{
     res.send("WELCOME....");
 })
 
