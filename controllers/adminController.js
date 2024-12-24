@@ -1,5 +1,63 @@
 const User = require('../models/User');  // Assuming Sales Managers and Labours are stored in the User model
 const Labour = require('../models/Labour');
+const Admin = require('../models/Admin');
+const {generateToken} = require('../jwt');
+
+// Function to signup admin
+exports.adminSignup = async (req, res)=>{
+    try{
+        const data = req.body // Assuming the request body contains the person data
+
+        // Create a new Person document using the Mongoose model
+        const newUser = new Admin(data);
+
+        // Save the new person to the database
+        const response = await newUser.save();
+        console.log('data saved');
+        
+        // Generating the token using payload (username)
+        const payload = {
+            adminID: response.adminID,
+        }
+        console.log(JSON.stringify(payload));
+        const token = generateToken(payload);
+        console.log("Token is : ", token);
+
+        res.status(200).json({response: response, token: token});
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).json({error: 'Internal Server Error'});
+    }
+}
+
+// Function to login admin
+exports.adminLogin = async (req, res) => {
+    try {
+        // Extract the aaddharNumber and password from the request body
+        const { adminID, password } = req.body;
+
+        // Find the user by aadharNumber
+        const user = await Admin.findOne({ adminID: adminID });
+
+        // If the user does not exist or the password is invalid, return error
+        if (!user || !(await user.comparePassword(password))) {
+            return res.status(401).json({ error: "Invalid username or password" });
+        }
+
+        // generate token
+        const payload = {
+            adminID: user.adminID
+        };
+        const token = generateToken(payload);
+
+        // return token as response 
+        res.json({ token });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}
 
 // Function to add a new Sales Manager
 exports.addSalesManager = async (req, res) => {
@@ -99,7 +157,7 @@ exports.getAllLabours = async (req, res) => {
 exports.deleteSalesManager = async (req, res) => {
     try {
         const { uID } = req.params;
-        const result = await User.deleteOne({uID:uID});
+        const result = await User.deleteOne({ uID: uID });
         console.log("Sales manager deleted successfully");
         res.status(200).json({
             success: true,
@@ -120,7 +178,7 @@ exports.deleteSalesManager = async (req, res) => {
 exports.deleteLabour = async (req, res) => {
     try {
         const { uID } = req.params;
-        const response = await Labour.deleteOne({uID:uID});
+        const response = await Labour.deleteOne({ uID: uID });
         res.status(200).json({
             success: true,
             data: response,
@@ -140,7 +198,7 @@ exports.viewLocations = async (req, res) => {
     try {
         const salesManagers = await User.find({ role: 'SalesManager' }).select('uID name area role');
         const labours = await Labour.find().select('uID name area role');
-        
+
         res.status(200).json({
             success: true,
             data: { salesManagers, labours },
