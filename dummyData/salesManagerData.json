@@ -1,0 +1,42 @@
+// add a new sales manager
+{
+    "uID": 2100533,
+    "name":"Kane",
+    "email":"kane708@example.com",
+    "area":"Noida"
+}, 
+
+{
+    "uID": 2100535,
+    "name":"Nikhil",
+    "email":"nikhil708@example.com",
+    "area": "Delhi"
+}
+
+
+
+// Singup - create password
+{
+    "uID": 2100533,
+    "password":"1234567"
+}, 
+{
+    "uID": 2100535,
+    "password":"1234567"
+}
+//  Add or update task -> labour id needed as parameter
+{
+    "taskID":34,
+    "taskDescription":"Paint all the windows",
+    "assignedOn":"2024-12-27",
+    "status":"Pending"
+}
+
+// Update completion date and status of the task
+{
+    "taskID":34,
+    "taskDescription":"Paint all the windows",
+    "assignedOn":"2024-12-27",
+    "status":"Completed",
+    "completionDate":"2024-12-27"
+}

@@ -3,19 +3,9 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const {generateToken} = require('../jwt');
 
-// // Function to check the user id
-// const checkUserID = async(uID)=>{
-//     try{
-//         const user = await User.findOne({uID:uID});
-//         if(!user) return false;
-//         return true;
-//     }catch(err){
-//         return false;
-//     }
-// }
 
 // Function to sign up labour 
-exports.labourSingnup = async (req, res)=>{
+exports.labourSignup = async (req, res)=>{
     try{
         const data = req.body // Assuming the request body contains the person data
         const {uID, password} = data;
@@ -82,7 +72,7 @@ exports.labourLogin = async(req, res)=>{
 // View all tasks for a specific labour
 exports.viewTasks = async (req, res) => {
     try {
-        const labourID = req.userPayload.uID;
+        const labourID = await req.userPayload.uID;
         console.log(labourID);
 
         const task = await Task.find({labourID:labourID});

@@ -62,12 +62,11 @@ exports.adminLogin = async (req, res) => {
 // Function to add a new Sales Manager
 exports.addSalesManager = async (req, res) => {
     try {
-        const { uID, name, email, password, area } = req.body;
+        const { uID, name, email, area } = req.body;
         const newSalesManager = new User({
             uID,
             name,
             email,
-            password,
             role: 'SalesManager',
             area
         });
@@ -106,7 +105,7 @@ exports.addLabour = async (req, res) => {
             role:'Labour',
             email,
             area
-        })
+        });
 
         const response = await newLabour.save();
         await newUser.save();

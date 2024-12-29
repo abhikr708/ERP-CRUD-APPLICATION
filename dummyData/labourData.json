@@ -1,0 +1,14 @@
+// add labour to labour database - can be added by admin or salesManager
+{
+    "uID": 2100922,
+    "name": "Jone",
+    "assignedSalesManager":"Bob",
+    "area": "Noida",
+    "email": "jone07@example.com"
+}
+
+// Singup labour
+{
+    "uID":2100922,
+    "password":"1234567"
+}
