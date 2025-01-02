@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const Salary = require('./Salary');
 
 const userSchema = new mongoose.Schema({
     uID: {

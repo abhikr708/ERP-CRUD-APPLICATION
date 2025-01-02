@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
+const User = require('./User');
 
 const attendanceSchema = new mongoose.Schema({
     uID: {
         type: Number,
-        required: true
+        required: true,
+        ref: 'User'
     },
     name:{
         type: String,
@@ -18,17 +20,41 @@ const attendanceSchema = new mongoose.Schema({
         enum: ['Admin', 'SalesManager', 'Labour', 'HR'],
         required: true
     },
-    date: {
-        type: Date,
-        default: Date.now,
-        required: true
-    },
-    status: {
-        type: String,
-        enum: ['Present', 'Absent', 'Late'],
-        default: 'Present'
-    }
+    attendance: [
+        {
+            date: {
+                type: Date,
+                required: true
+            },
+            status: {
+                type: String,
+                enum: ['Present', 'Absent'],
+                required: true
+            }
+
+        }
+    ]
 });
+
+// Middleware to populate fields from User schema before saving
+attendanceSchema.pre('save', async function (next) {
+    if (this.isNew || this.isModified('uID')) {
+        try {
+            const user = await mongoose.model('User').findOne({ uID: this.uID });
+            if (user) {
+                this.name = user.name;
+                this.role = user.role;
+                this.email = user.email;
+            } else {
+                return next(new Error('User not found'));
+            }
+        } catch (error) {
+            return next(error);
+        }
+    }
+    next();
+});
+
 
 const Attendance = mongoose.model('Attendance', attendanceSchema);
 module.exports = Attendance;

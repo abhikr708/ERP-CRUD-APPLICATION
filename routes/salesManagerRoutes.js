@@ -10,8 +10,6 @@ router.post("/salesManagerSignup", salesManagerSignup);
 router.post("/salesManagerLogin", salesManagerLogin);
 router.get("/manageLabours", jwtAuthMiddleware, manageLabours);
 router.post('/addNewLabour', jwtAuthMiddleware, addNewLabour);
-router.post('/trackInTime/:uID', jwtAuthMiddleware, trackInTime);
-router.post('/trackOutTime/:uID', jwtAuthMiddleware, trackOutTime);
 router.post('/addOrUpdateTask/:labourID', jwtAuthMiddleware, addOrUpdateTask);
 
 module.exports = router;

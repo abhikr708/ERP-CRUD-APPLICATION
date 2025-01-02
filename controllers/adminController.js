@@ -88,6 +88,35 @@ exports.addSalesManager = async (req, res) => {
     }
 };
 
+// Function to add a new HR
+exports.addHr = async (req, res) => {
+    try {
+        const { uID, name, email, area } = req.body;
+        const newHr = new User({
+            uID,
+            name,
+            email,
+            role: 'HR',
+            area
+        });
+
+        const response = await newHr.save();
+        console.log("HR added successfully");
+        res.status(201).json({
+            success: true,
+            data: response,
+            message: "HR added successfully"
+        });
+    } catch (error) {
+        console.log("Error adding HR");
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: "Error adding HR"
+        });
+    }
+};
+
 // Function to add a new Labour
 exports.addLabour = async (req, res) => {
     try {

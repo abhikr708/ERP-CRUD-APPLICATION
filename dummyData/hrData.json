@@ -1,0 +1,27 @@
+// Delhi HR
+{
+    "uID":100100,
+    "name":"Ankita",
+    "email":"ankita708@example.com",
+    "area":"Delhi"
+},
+{
+    // login info
+    "uID":100100,
+    "password":"1234567"
+},
+
+// add or update salary - only needs the uID, baseSalary, bonus, deduction
+{
+    "uID":2100922,
+    "baseSalary":10000,
+    "bonus":2000,
+    "deduction":1000
+}
+
+// Record attendance for Sales Manager or labour
+{
+    "uID": 2100922,
+    "date": "2025-01-03",
+    "status":"Absent" 
+}

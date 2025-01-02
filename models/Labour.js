@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// Create new Labout Schema
+// Create new Labour Schema
 const labourSchema = new mongoose.Schema(
     {
 
@@ -32,6 +32,7 @@ const labourSchema = new mongoose.Schema(
         },
         tasks: [
             {
+                taskID: { type: Number, required: true },
                 taskDescription: { type: String, required: true },
                 status: {
                     type: String,
@@ -41,8 +42,7 @@ const labourSchema = new mongoose.Schema(
                 assignedDate: { type: Date, default: Date.now },
                 completionDate: { type: Date }
             }
-        ]
-
+        ],
     }
 );
 

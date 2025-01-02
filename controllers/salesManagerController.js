@@ -1,7 +1,6 @@
 // import the database schema
 const Labour = require('../models/Labour');
 const User = require('../models/User');
-const Task = require("../models/Task");
 const {generateToken} = require('../jwt');
 
 // Function to sign up sales manager
@@ -87,10 +86,18 @@ exports.manageLabours = async (req, res) => {
         if (!labours) {
             console.log("No labour found");
         }
+
+        // Eclude unnecessary data from the response   
+        const response = labours.map(labour =>({
+            uID: labour.uID,
+            name: labour.name,
+            assignedSalesManager: labour.assignedSalesManager,  
+            area: labour.area 
+        }));
         console.log("Data fetched Successfully");
         res.status(200).json({
             success: true,
-            data: labours,
+            data: response,
             message: "Data fetched Successfully"
         });
     } catch (err) {
@@ -137,101 +144,47 @@ exports.addNewLabour = async (req, res) => {
     }
 }
 
-// Function to track the in time of the labour
-exports.trackInTime = async (req, res) => {
-    try {
-        const { uID } = req.params; // Get the labour ID from the request
-        const labour = await Labour.findOne({ uID });
-
-        if (!labour) {
-            console.log("Error 404, Labour not found")
-            return res.status(404).json({ message: 'Labour not found' });
-        }
-
-        // Set in-time to the current date and time
-        labour.inTime = new Date();
-        const response = await labour.save();
-
-        res.status(200).json({
-            message: 'In-time recorded successfully',
-            inTime: response.inTime
-        });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Error recording in-time',
-            error: error.message
-        });
-    }
-};
-
-// Function to track the out time of the labour
-exports.trackOutTime = async (req, res) => {
-    try {
-        const { uID } = req.params; // Get the labour ID from the request
-        const labour = await Labour.findOne({ uID });
-
-        if (!labour) {
-            return res.status(404).json({ message: 'Labour not found' });
-        }
-
-        // Set out-time to the current date and time
-        labour.outTime = new Date();
-        const response = await labour.save();
-
-        res.status(200).json({
-            message: 'Out-time recorded successfully',
-            outTime: response.outTime
-        });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Error recording out-time',
-            error: error.message
-        });
-    }
-};
-
-
-// Function to add task
+// Function to add or update task
 exports.addOrUpdateTask = async (req, res) => {
     try {
         const { labourID } = req.params;
         const { taskDescription, taskID, assignedOn, status, completionDate } = req.body;
 
-        // Find existing task record
-        let task = await Task.findOne({ taskID });
+        // Find existing labour record
+        let labour = await Labour.findOne({ uID: labourID });
+
+        if (!labour) {
+            return res.status(404).json({ message: 'Labour not found' });
+        }
+
+        // Find existing task
+        let task = labour.tasks.find(task => task.taskID === taskID);
 
         if (task) {
             // Update existing task
-            task.taskDescription = taskDescription,
-            task.assignedOn = assignedOn,
-            task.status = status,
-            task.completionDate = completionDate
-        }
-        else {
-            // Create a new task
-            task = new Task({
-                labourID,
-                taskDescription,
+            task.taskDescription = taskDescription;
+            task.assignedOn = assignedOn;
+            task.status = status;
+            task.completionDate = completionDate;
+        } else {
+            // Add new task
+            labour.tasks.push({
                 taskID,
+                taskDescription,
                 assignedOn,
                 status,
                 completionDate
             });
         }
 
-        const response = await task.save();
-        console.log("Task added successfully");
-        res.status(200).json({
-            success: true,
-            data: response,
-            message: 'Task added successfully'
-        });
+        // Save the updated labour record
+        await labour.save();
+
+        res.status(200).json({ message: 'Task added/updated successfully' });
     } catch (error) {
-        console.log("Error addding the task");
         res.status(500).json({
-            success: false,
-            error: error.message,
-            message: 'Error adding the task'
+            message: 'Error adding/updating task',
+            error: error.message
         });
     }
-}
+};

@@ -1,5 +1,4 @@
-const { findOne } = require('../models/Labour');
-const Task = require('../models/Task');
+const Labour = require('../models/Labour');
 const User = require('../models/User');
 const {generateToken} = require('../jwt');
 
@@ -72,17 +71,19 @@ exports.labourLogin = async(req, res)=>{
 // View all tasks for a specific labour
 exports.viewTasks = async (req, res) => {
     try {
-        const labourID = await req.userPayload.uID;
+        const labourID = req.userPayload.uID;
         console.log(labourID);
 
-        const task = await Task.find({labourID:labourID});
-        if (!task) {
+        const labour = await Labour.findOne({ uID: labourID });
+        if (!labour) {
             return res.status(404).json({ message: 'Labour not found' });
         }
+
+        const tasks = labour.tasks;
         console.log("Task data retrieved successfully");
         res.status(200).json({
             success: true,
-            data: task,
+            data: tasks,
             message: 'Tasks retrieved successfully'
         });
     } catch (error) {

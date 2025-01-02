@@ -1,34 +1,186 @@
 const Attendance = require('../models/Attendance');
 const Salary = require('../models/Salary');
-const Task = require('../models/Task');
+const User = require('../models/User');
+const Labour = require('../models/Labour');
+const mongoose = require('mongoose');
+const { generateToken } = require('../jwt');
+
+// Function to SignUp HR 
+exports.hrSignup = async (req, res) => {
+    try {
+        const data = req.body // Assuming the request body contains the person data
+        const { uID, password } = data;
+        // if(! await checkUserID(uID))
+        //     return res.status(403).json({message:'This User ID is not available in our database. Please contact your admin to get your User ID'});
+
+        const user = await User.findOne({ uID: uID });
+        if (!user)
+            return res.status(403).json({ message: 'This User ID is not available in our database. Please contact your admin to get your User ID' });
+
+        // extract the area form the user
+        const area = user.area;
+
+        // save the password of the user
+        user.password = password;
+
+        // Save the new person to the database
+        const response = await user.save();
+        console.log('data saved');
+
+        // Generating the token using payload (username)
+        const payload = {
+            uID: response.uID,
+            area: area
+        }
+        console.log(JSON.stringify(payload));
+        const token = generateToken(payload);
+        console.log("Token is : ", token);
+
+        res.status(200).json({ response: response, token: token });
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+
+// Function to login salesManager
+exports.hrLogin = async (req, res) => {
+    try {
+        // Extract the aaddharNumber and password from the request body
+        const { uID, password } = req.body;
+
+        // Find the user by aadharNumber
+        const user = await User.findOne({ uID: uID });
+
+        // If the user does not exist or the password is invalid, return error
+        if (!user || !(await user.comparePassword(password))) {
+            return res.status(401).json({ error: "Invalid username or password" });
+        }
+        // extract the area form the user
+        const area = user.area;
+
+        // generate token
+        const payload = {
+            uID: user.uID,
+            area: area
+        };
+        const token = generateToken(payload);
+
+        // return token as response 
+        res.json({ token });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}
+
+// Function to get the labour infomation of HR's Area
+exports.manageLabours = async (req, res) => {
+    try {
+        // get the area of the Sales manager from the user input
+        const area = await req.userPayload.area;
+        // console.log("Area is ", area);
+        // find the labours who belongs within the sales manager area
+        const labours = await Labour.find({ area: area });
+
+        if (!labours) {
+            console.log("No labour found");
+        }
+
+        console.log("Data fetched Successfully");
+        res.status(200).json({
+            success: true,
+            data: labours,
+            message: "Data fetched Successfully"
+        });
+    } catch (err) {
+        console.log("Failed to fetch data");
+        res.status(500).json({
+            success: false,
+            data: err.message,
+            message: "Internal server error",
+        })
+    }
+}
+
+// Function to get the SalesManagers of HR's Area
+exports.manageSalesManagers = async (req, res) => {
+    try {
+        // get the area of the Sales manager from the user input
+        const area = await req.userPayload.area;
+        console.log("Area is ", area);
+        // find the labours who belongs within the sales manager area
+        const salesManagers = await User.find({ area: area, role: 'SalesManager' });
+
+        if (!salesManagers || salesManagers.length === 0) {
+            console.log("No Sales MNanager found");
+        }
+
+        // Exclude password from the response
+        const salesManagersWithoutPassword = salesManagers.map(manager => ({
+            uID: manager.uID,
+            name: manager.name,
+            area: manager.area,
+            email: manager.email,
+            role: manager.role
+        }));
+
+        console.log("Data fetched Successfully");
+        res.status(200).json({
+            success: true,
+            data: salesManagersWithoutPassword,
+            message: "Data fetched Successfully"
+        });
+    } catch (err) {
+        console.log("Failed to fetch data");
+        res.status(500).json({
+            success: false,
+            data: err.message,
+            message: "Internal server error",
+        })
+    }
+}
 
 // Function to mark attendance of the employees
 exports.recordAttendance = async (req, res) => {
     try {
-        const { uID, name, email, role, date, status } = req.body;
-        const newAttendance = new Attendance({
-            uID,
-            name,
-            email,
-            role,
-            date,
-            status
-        });
+        const { uID, date, status } = req.body;
 
-        const response = await newAttendance.save();
-        console.log("Attendance marked Successfully");
-        res.status(200).json({
-            success: true,
-            data: response,
-            message: 'Attendance recorded successfully'
-        });
+        // Find the attendance record for the user
+        let attendance = await Attendance.findOne({ uID });
+
+        if (!attendance) {
+            // If no attendance record exists, create a new one
+            const user = await mongoose.model('User').findOne({ uID });
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            attendance = new Attendance({
+                uID: user.uID,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                attendance: []
+            });
+        }
+
+        // Add or update the attendance for the given date
+        const existingAttendance = attendance.attendance.find(att => att.date.toISOString().split('T')[0] === new Date(date).toISOString().split('T')[0]);
+
+        if (existingAttendance) {
+            existingAttendance.status = status;
+        } else {
+            attendance.attendance.push({ date, status });
+        }
+
+        await attendance.save();
+
+        res.status(200).json({ message: 'Attendance recorded successfully' });
     } catch (error) {
-        console.log("Error recording attendance");
-        res.status(500).json({
-            success: false,
-            error: error.message,
-            message: 'Error recording attendance'
-        });
+        res.status(500).json({ message: 'Error recording attendance', error: error.message });
     }
 };
 
@@ -36,13 +188,14 @@ exports.recordAttendance = async (req, res) => {
 exports.calculateAttendance = async (req, res) => {
     try {
         const { uID } = req.params;
-        const totalDays = await Attendance.countDocuments({ uID });
-        const presentDays = await Attendance.countDocuments({ uID, status: 'Present' });
-        // const lateDays = await Attendance.countDocuments({uID, status: 'Late'});
-        const absentDays = await Attendance.countDocuments({
-            uID,
-            $or: [{ status: 'Absent' }, { status: 'Late' }]
-        });
+        const user = await Attendance.findOne({ uID });
+        if (!user) {
+            res.status(404).json({message: 'User not found'});
+        }
+
+        const totalDays = user.attendance.length;
+        const presentDays = user.attendance.filter(day => day.status === 'Present').length;
+        const absentDays = user.attendance.filter( day=> day.status==='Absent').length;
 
         console.log("Attendance Calculated Successfully");
         res.status(200).json({
@@ -50,7 +203,6 @@ exports.calculateAttendance = async (req, res) => {
             data: {
                 totalDays,
                 presentDays,
-                // lateDays,
                 absentDays
             },
             message: 'Attendance summary calculated successfully'
@@ -147,16 +299,23 @@ exports.calculateTask = async (req, res) => {
 
     try {
         const { labourID } = req.params;
-        const totalTasks = await Task.countDocuments({ labourID });
-        const compltedTasks = await Task.countDocuments({ labourID, status: 'Completed' });
-        const pendingTasks = await Task.countDocuments({ labourID, status: 'Pending' });
+
+        const labour = await Labour.findOne({ uID: labourID });
+        if (!labour) {
+            return res.status(404).json({ message: 'Labour not found' });
+        }
+
+        // Calculate the task statistics
+        const totalTasks = labour.tasks.length;
+        const completedTasks = labour.tasks.filter(task => task.status === 'Completed').length;
+        const pendingTasks = labour.tasks.filter(task => task.status === 'Pending').length;
 
         console.log("Tasks Calculated Successfully");
         res.status(200).json({
             success: true,
             data: {
                 totalTasks,
-                compltedTasks,
+                completedTasks,
                 pendingTasks
             },
             message: 'Task summary calculated successfully'

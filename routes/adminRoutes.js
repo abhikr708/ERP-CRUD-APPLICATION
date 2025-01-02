@@ -6,6 +6,7 @@ const {
     adminSignup,
     adminLogin,
     addSalesManager,
+    addHr,
     addLabour,
     getAllSalesManagers,
     getAllLabours,
@@ -22,6 +23,9 @@ router.post('/login', adminLogin);
 
 // Route to add a Sales Manager
 router.post('/addSalesManager', jwtAuthMiddleware, addSalesManager); // runs
+
+// Route to add an HR
+router.post('/addHr', jwtAuthMiddleware, addHr); // runs
 
 // Route to add a Labour
 router.post('/addLabour',jwtAuthMiddleware, addLabour); // runs
